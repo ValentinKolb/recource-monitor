@@ -1,45 +1,30 @@
 import asyncio
+from typing import Any
+from DataObjects import *
 
-from fastapi import FastAPI
-
-app = FastAPI()
-
-
-async def ping(addr: str) -> dict:
-    proc = await asyncio.create_subprocess_shell(
-        f'ping -c 1 -W 1 {addr}',
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE)
-
-    stdout, stderr = await proc.communicate()
-
-    return {
-        "code": proc.returncode,
-        "stdout": stdout.decode(),
-        "stderr": stderr.decode()
-    }
+import PySimpleGUI as sg
 
 
-async def ping6(addr: str) -> dict:
-    proc = await asyncio.create_subprocess_shell(
-        f'ping6 -c 1 {addr}',
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE)
+data_groups = [
 
-    stdout, stderr = await proc.communicate()
+    [PingResource()]
 
-    return {
-        "code": proc.returncode,
-        "stdout": stdout.decode(),
-        "stderr": stderr.decode()
-    }
+]
 
 
-@app.get("/ping/{addr}")
-async def ping(addr: str):
-    return await ping(addr)
 
 
-@app.get("/ping6/{addr}")
-async def ping(addr: str):
-    return await ping6(addr)
+async def events(window: sg.Window) -> tuple[Any, dict, list, None]:
+    while True:
+        event, values = window.read(timeout=100, timeout_key="__TIMEOUT__")
+        if event == "__TIMEOUT__":
+            continue
+        elif event == sg.WINDOW_CLOSED:
+            break
+        else:
+            yield event, values
+        await asyncio.sleep(.1)
+
+
+if __name__ == '__main__':
+    window = sg.Window()
